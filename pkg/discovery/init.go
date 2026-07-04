@@ -37,18 +37,8 @@ func InitRegistry(serviceConfig *ServiceConfig, registryConfig *RegistryConfig) 
 		registryService = newEtcdRegistryService(serviceConfig, &registryConfig.Etcd3)
 	case RAFT:
 		registryService = NewRaftRegistryService(serviceConfig, registryConfig)
-	case NACOS:
-		//TODO: init nacos registry
-	case EUREKA:
-		//TODO: init eureka registry
-	case REDIS:
-		//TODO: init redis registry
-	case ZK:
-		//TODO: init zk registry
-	case CONSUL:
-		//TODO: init consul registry
-	case SOFA:
-		//TODO: init sofa registry
+	case NACOS, EUREKA, REDIS, ZK, CONSUL, SOFA:
+		err = fmt.Errorf("registry type %s is not implemented yet", registryConfig.Type)
 	case NAMINGSERVER:
 		// init namingserver registry
 		registryService = newNamingServerRegistryService(serviceConfig, &registryConfig.NamingServer)
