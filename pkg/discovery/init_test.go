@@ -18,6 +18,7 @@
 package discovery
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -92,6 +93,41 @@ func TestInitRegistry(t *testing.T) {
 					t.Errorf("type = %v, want %v", actualType, tt.expectedType)
 				}
 			}
+		})
+	}
+}
+
+func TestInitRegistryUnimplementedTypes(t *testing.T) {
+	tests := []struct {
+		name         string
+		registryType string
+	}{
+		{name: "nacos", registryType: NACOS},
+		{name: "eureka", registryType: EUREKA},
+		{name: "redis", registryType: REDIS},
+		{name: "zk", registryType: ZK},
+		{name: "consul", registryType: CONSUL},
+		{name: "sofa", registryType: SOFA},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			registryServiceInstance = nil
+			defer func() {
+				recovered := recover()
+				if recovered == nil {
+					t.Fatal("InitRegistry() did not panic")
+				}
+				want := fmt.Sprintf("init service registry err:registry type %s is not implemented yet", tt.registryType)
+				if got := fmt.Sprint(recovered); got != want {
+					t.Fatalf("InitRegistry() panic = %v, want %v", got, want)
+				}
+				if instance := GetRegistry(); instance != nil {
+					t.Fatalf("GetRegistry() = %T, want nil", instance)
+				}
+			}()
+
+			InitRegistry(&ServiceConfig{}, &RegistryConfig{Type: tt.registryType})
 		})
 	}
 }
