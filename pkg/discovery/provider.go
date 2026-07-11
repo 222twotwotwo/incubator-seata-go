@@ -57,9 +57,5 @@ func normalizeRegistryType(registryType string) string {
 }
 
 func unsupportedRegistryTypeError(registryType string) error {
-	switch registryType {
-	case NACOS, EUREKA, REDIS, ZK, CONSUL, SOFA:
-		return fmt.Errorf("registry type %s is not implemented yet", registryType)
-	}
 	return fmt.Errorf("service registry not support registry type:%s", registryType)
 }
