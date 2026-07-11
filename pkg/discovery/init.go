@@ -26,30 +26,30 @@ var (
 )
 
 func InitRegistry(serviceConfig *ServiceConfig, registryConfig *RegistryConfig) {
-	var registryService RegistryService
-	var err error
-	switch registryConfig.Type {
-	case FILE:
-		//init file registry
-		registryService = newFileRegistryService(serviceConfig)
-	case ETCD:
-		//init etcd registry
-		registryService = newEtcdRegistryService(serviceConfig, &registryConfig.Etcd3)
-	case RAFT:
-		registryService = NewRaftRegistryService(serviceConfig, registryConfig)
-	case NACOS, EUREKA, REDIS, ZK, CONSUL, SOFA:
-		err = fmt.Errorf("registry type %s is not implemented yet", registryConfig.Type)
-	case NAMINGSERVER:
-		// init namingserver registry
-		registryService = newNamingServerRegistryService(serviceConfig, &registryConfig.NamingServer)
-	default:
-		err = fmt.Errorf("service registry not support registry type:%s", registryConfig.Type)
-	}
-
-	if err != nil {
+	if err := InitRegistryWithError(serviceConfig, registryConfig); err != nil {
 		panic(fmt.Errorf("init service registry err:%v", err))
 	}
+}
+
+func InitRegistryWithError(serviceConfig *ServiceConfig, registryConfig *RegistryConfig) error {
+	if registryConfig == nil {
+		return fmt.Errorf("registry config is nil")
+	}
+
+	provider, ok := registryProviderFor(registryConfig.Type)
+	if !ok {
+		return unsupportedRegistryTypeError(registryConfig.Type)
+	}
+
+	registryService, err := provider(serviceConfig, registryConfig)
+	if err != nil {
+		return err
+	}
+	if registryService == nil {
+		return fmt.Errorf("registry provider returned nil for type:%s", registryConfig.Type)
+	}
 	registryServiceInstance = registryService
+	return nil
 }
 
 func GetRegistry() RegistryService {
